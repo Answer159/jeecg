@@ -1,16 +1,18 @@
 package org.jeecg.modules.demo.test.controller;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.system.query.QueryGenerator;
+import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.demo.test.entity.YhHealthCert;
 import org.jeecg.modules.demo.test.service.IYhHealthCertService;
@@ -82,8 +84,19 @@ public class YhHealthCertController extends JeecgController<YhHealthCert, IYhHea
 	@ApiOperation(value="yh_health_cert-添加", notes="yh_health_cert-添加")
 	@PostMapping(value = "/add")
 	public Result<?> add(@RequestBody YhHealthCert yhHealthCert) {
+		LoginUser sysUser = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+		yhHealthCert.setUploadUserId(sysUser.getId());
+		Date current_date = new Date();
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(yhHealthCert.getIssueDate());
+		cal.add(Calendar.YEAR, 2);
+		long t=cal.getTimeInMillis();
+		Date date=new Date(t);
+		yhHealthCert.setValidity(date);
+		yhHealthCert.setUploadDate(current_date);
 		yhHealthCertService.save(yhHealthCert);
 		return Result.OK("添加成功！");
+
 	}
 
 	/**
@@ -96,8 +109,11 @@ public class YhHealthCertController extends JeecgController<YhHealthCert, IYhHea
 	@ApiOperation(value="yh_health_cert-编辑", notes="yh_health_cert-编辑")
 	@PutMapping(value = "/edit")
 	public Result<?> edit(@RequestBody YhHealthCert yhHealthCert) {
+		Date current_date = new Date();
+		yhHealthCert.setUploadDate(current_date);
 		yhHealthCertService.updateById(yhHealthCert);
 		return Result.OK("编辑成功!");
+
 	}
 
 	/**
